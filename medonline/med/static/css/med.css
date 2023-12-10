@@ -1,0 +1,59 @@
+html {
+    font-family: 'Roboto';
+}
+
+.head-menu a {
+    font-size: 140%;
+    display:inline-block;
+    padding-left: 20;
+    padding-right: 20;
+}
+
+body {
+    background-color: #041017;
+    color: #757474;
+    text-align:left;
+    padding-left: 20;
+}
+
+a {
+    text-decoration: none;
+    color: #ffc7ae;
+}
+
+.head-text {
+    text-align:center;
+}
+
+.doctor {
+    margin-bottom: 70px;
+}
+
+.doctor_name:hover {
+    padding-left: 20;
+}
+
+.specialization a{
+    color: #ffc77e;
+}
+
+a:hover {
+    color: #5ff7fe;
+}
+
+.btn  {
+    background-color: #f9ffd0;
+    color: 010d10;
+    padding: 5px 32px;
+    text-align: center;
+    display: inline-block;
+    font-size: 150%;
+    float: right;
+    margin: 5;
+}
+
+.btn:hover {
+    background-color: #212d30;
+}
+
+

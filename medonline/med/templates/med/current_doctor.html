@@ -1,0 +1,30 @@
+{% extends 'med/base.html' %}
+
+{% block head_text %}
+    <h1>{{ doctor.name }}</h1>
+{% endblock %}
+
+{% block content %}
+            {% if doctor.specialization %}
+            <p class="specialization" >Специализация:
+                {% for specialization in doctor.specialization.all %}
+                <a href="{% url 'current_specialization' pk=specialization.pk %}">{{ specialization.name }}</a>
+                {% endfor %}
+            </p>
+            {% endif %}
+
+            {% if publications %}
+            <p class="specialization" >Публикации:
+                {% for publication in publications %}
+                <a href="{% url 'current_publication' pk=publication.pk %}">{{ publication.title }}</a>
+                {% endfor %}
+            </p>
+            {% endif %}
+
+
+        {% if user.is_authenticated %}
+        <a class="btn btn-default" href="{% url 'current_specialization' pk=1 %}">Rec</a>
+        {% endif %}
+
+{% endblock %}
+
