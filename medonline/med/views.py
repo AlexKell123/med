@@ -3,40 +3,37 @@ from django.utils import timezone
 from .models import Doctor, Specialization, Publication
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from rest_framework import generics
+from . import serializers
+from django.contrib.auth.models import User
 
 
-def show_all_doctors(request):
-    doctors = Doctor.objects.order_by('name')
-    return render(request, 'med/all_doctors.html', {'doctors': doctors, 'title': 'Все доктора'})
+class UserList(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = serializers.UserSerializer
 
 
-def show_all_specializations(request):
-    specializations = Specialization.objects.order_by('name')
-    return render(request, 'med/all_specializations.html', {'specializations': specializations, 'title': 'Все специализации'})
+class UserDetail(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = serializers.UserSerializer
 
 
-def current_doctor(request, pk):
-    doctor = get_object_or_404(Doctor, pk=pk)
-    publications = Publication.objects.filter(author=pk)
-    return render(request, 'med/current_doctor.html', {'doctor': doctor, 'publications': publications})
+class AllDoctorsList(generics.ListAPIView):
+    queryset = Doctor.objects.all()
+    serializer_class = serializers.DoctorSerializer
 
 
-def current_specialization(request, pk):
-    doctors = Doctor.objects.filter(specialization=pk)
-    title = 'Доктора со специализацией: ' + get_object_or_404(Specialization, pk=pk).name
-    return render(request, 'med/all_doctors.html', {'doctors': doctors, 'title': title})
+class DoctorDetail(generics.RetrieveAPIView):
+    queryset = Doctor.objects.all()
+    serializer_class = serializers.DoctorSerializer
 
 
-def current_publication(request, pk):
-    pass
+class AllSpecializationsList(generics.ListAPIView):
+    queryset = Specialization.objects.all()
+    serializer_class = serializers.SpecializationSerializer
 
 
-
-
-
-
-
-
-
-
+class SpecializationDetail(generics.RetrieveAPIView):
+    queryset = Specialization.objects.all()
+    serializer_class = serializers.SpecializationSerializer
 
