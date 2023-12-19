@@ -1,39 +1,111 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-from .models import Doctor, Specialization, Publication
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from rest_framework import generics
-from . import serializers
-from django.contrib.auth.models import User
+from django.urls import re_path
+
+from rest_framework import generics, viewsets
+from rest_framework.response import Response
+
+from .serializers import UserSerializer, DoctorSerializer, SpecializationSerializer, PublicationSerializer
+from .models import Doctor, Specialization, Publication
 
 
-class UserList(generics.ListAPIView):
-    queryset = User.objects.all()
-    serializer_class = serializers.UserSerializer
+class UserViewSet(viewsets.ViewSet):
+
+    def list(self, request):
+        queryset = User.objects.all()
+        serializer = UserSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        queryset = User.objects.all()
+        user = get_object_or_404(queryset, pk=pk)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
 
 
-class UserDetail(generics.RetrieveAPIView):
-    queryset = User.objects.all()
-    serializer_class = serializers.UserSerializer
+class DoctorViewSet(viewsets.ViewSet):
+
+    def list(self, request):
+        queryset = Doctor.objects.all()
+        serializer = DoctorSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        queryset = Doctor.objects.all()
+        user = get_object_or_404(queryset, pk=pk)
+        serializer = DoctorSerializer(user)
+        return Response(serializer.data)
 
 
-class AllDoctorsList(generics.ListAPIView):
-    queryset = Doctor.objects.all()
-    serializer_class = serializers.DoctorSerializer
+class SpecializationViewSet(viewsets.ViewSet):
+
+    def list(self, request):
+        queryset = Specialization.objects.all()
+        serializer = SpecializationSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        queryset = Specialization.objects.all()
+        user = get_object_or_404(queryset, pk=pk)
+        serializer = SpecializationSerializer(user)
+        return Response(serializer.data)
 
 
-class DoctorDetail(generics.RetrieveAPIView):
-    queryset = Doctor.objects.all()
-    serializer_class = serializers.DoctorSerializer
+class PublicationViewSet(viewsets.ViewSet):
+
+    def list(self, request):
+        queryset = Publication.objects.all()
+        serializer = PublicationSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        queryset = Publication.objects.all()
+        user = get_object_or_404(queryset, pk=pk)
+        serializer = PublicationSerializer(user)
+        return Response(serializer.data)
 
 
-class AllSpecializationsList(generics.ListAPIView):
-    queryset = Specialization.objects.all()
-    serializer_class = serializers.SpecializationSerializer
+
+user_list = UserViewSet.as_view({'get': 'list'})
+user_detail = UserViewSet.as_view({'get': 'retrieve'})
 
 
-class SpecializationDetail(generics.RetrieveAPIView):
-    queryset = Specialization.objects.all()
-    serializer_class = serializers.SpecializationSerializer
+# class UserList(generics.ListAPIView):
+#     queryset = User.objects.all()
+#     serializer_class = serializers.UserSerializer
 
+
+# class UserDetail(generics.RetrieveAPIView):
+#     queryset = User.objects.all()
+#     serializer_class = UserSerializer
+
+
+# class AllDoctorsList(generics.ListAPIView):
+#     queryset = Doctor.objects.all()
+#     serializer_class = DoctorSerializer
+#
+#
+# class DoctorDetail(generics.RetrieveAPIView):
+#     queryset = Doctor.objects.all()
+#     serializer_class = DoctorSerializer
+
+
+# class AllSpecializationsList(generics.ListAPIView):
+#     queryset = Specialization.objects.all()
+#     serializer_class = SpecializationSerializer
+#
+#
+# class SpecializationDetail(generics.RetrieveAPIView):
+#     queryset = Specialization.objects.all()
+#     serializer_class = SpecializationSerializer
+
+# class AllPublicationsList(generics.ListAPIView):
+#     queryset = Publication.objects.all()
+#     serializer_class = PublicationSerializer
+#
+#
+# class PublicationDetail(generics.RetrieveAPIView):
+#     queryset = Publication.objects.all()
+#     serializer_class = PublicationSerializer
