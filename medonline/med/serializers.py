@@ -8,7 +8,7 @@ from .models import Doctor, Specialization, Publication
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username']
+        fields = ['__all__']
 
 
 class DoctorSerializer(serializers.ModelSerializer):

@@ -10,6 +10,8 @@ from .views import UserViewSet, DoctorViewSet, SpecializationViewSet, Publicatio
 schema_view = get_swagger_view(title='API')
 
 router = DefaultRouter()
+
+#TODO исправить basename
 router.register(r'users', UserViewSet, basename='user')
 router.register(r'doctors', DoctorViewSet, basename='user')
 router.register(r'specializations', SpecializationViewSet, basename='user')
@@ -19,6 +21,7 @@ router.register(r'publications', PublicationViewSet, basename='user')
 urlpatterns = router.urls
 
 
+#TODO не оставлять мусор
 
 # urlpatterns = [
 #     path('s', schema_view),
