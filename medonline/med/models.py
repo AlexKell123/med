@@ -12,7 +12,7 @@ class Specialization(models.Model):
 
 class Doctor(models.Model):
     name = models.CharField(max_length=30)
-    specialization = models.ManyToManyField(Specialization)
+    specialization = models.ManyToManyField(Specialization, related_name='doctors')
 
     def __str__(self):
         return self.name
@@ -29,5 +29,23 @@ class Publication(models.Model):
         return self.title
 
 
+class WorkTime(models.Model):
+    doctor = models.ForeignKey(Doctor, related_name='work_times', on_delete=models.CASCADE, null=True)
+
+    class Suit(models.IntegerChoices):
+        MON = 0
+        TUE = 1
+        WED = 2
+        THI = 3
+        FRI = 4
+        SAT = 5
+        SUN = 6
+    day = models.IntegerField(choices=Suit)
+    start_time = models.TimeField(auto_now=False, auto_now_add=False)
+    end_time = models.TimeField(auto_now=False, auto_now_add=False)
+
+
 class Consultation(models.Model):
-    pass
+    doctor = models.ForeignKey(Doctor, related_name='consultations', on_delete=models.CASCADE, null=True)
+    datetime = models.DateTimeField(blank=True, null=True)
+
