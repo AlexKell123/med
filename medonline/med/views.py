@@ -7,8 +7,9 @@ from django.urls import re_path
 from rest_framework import generics, viewsets
 from rest_framework.response import Response
 
-from .serializers import UserSerializer, DoctorSerializer, SpecializationSerializer, PublicationSerializer
-from .models import Doctor, Specialization, Publication
+from .serializers import UserSerializer, DoctorSerializer, SpecializationSerializer, PublicationSerializer, \
+    WorkTimeSerializer, ConsultationSerializer
+from .models import Doctor, Specialization, Publication, WorkTime, Consultation
 
 
 class UserViewSet(viewsets.ViewSet):
@@ -34,8 +35,8 @@ class DoctorViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         queryset = Doctor.objects.all()
-        user = get_object_or_404(queryset, pk=pk)
-        serializer = DoctorSerializer(user)
+        doctor = get_object_or_404(queryset, pk=pk)
+        serializer = DoctorSerializer(doctor)
         return Response(serializer.data)
 
 
@@ -48,8 +49,8 @@ class SpecializationViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         queryset = Specialization.objects.all()
-        user = get_object_or_404(queryset, pk=pk)
-        serializer = SpecializationSerializer(user)
+        specialization = get_object_or_404(queryset, pk=pk)
+        serializer = SpecializationSerializer(specialization)
         return Response(serializer.data)
 
 
@@ -62,14 +63,42 @@ class PublicationViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         queryset = Publication.objects.all()
-        user = get_object_or_404(queryset, pk=pk)
-        serializer = PublicationSerializer(user)
+        publication = get_object_or_404(queryset, pk=pk)
+        serializer = PublicationSerializer(publication)
+        return Response(serializer.data)
+
+
+class WorkTimeViewSet(viewsets.ViewSet):
+
+    def list(self, request):
+        queryset = WorkTime.objects.all()
+        serializer = WorkTimeSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        queryset = WorkTime.objects.all()
+        work_time = get_object_or_404(queryset, pk=pk)
+        serializer = WorkTimeSerializer(work_time)
+        return Response(serializer.data)
+
+
+class ConsultationViewSet(viewsets.ViewSet):
+
+    def list(self, request):
+        queryset = Consultation.objects.all()
+        serializer = ConsultationSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        queryset = Consultation.objects.all()
+        consultation = get_object_or_404(queryset, pk=pk)
+        serializer = ConsultationSerializer(consultation)
         return Response(serializer.data)
 
 
 
-user_list = UserViewSet.as_view({'get': 'list'})
-user_detail = UserViewSet.as_view({'get': 'retrieve'})
+# user_list = UserViewSet.as_view({'get': 'list'})
+# user_detail = UserViewSet.as_view({'get': 'retrieve'})
 
 
 # class UserList(generics.ListAPIView):

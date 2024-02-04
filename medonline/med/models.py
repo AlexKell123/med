@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 
 class Specialization(models.Model):
@@ -30,7 +31,7 @@ class Publication(models.Model):
 
 
 class WorkTime(models.Model):
-    doctor = models.ForeignKey(Doctor, related_name='work_times', on_delete=models.CASCADE, null=True)
+    doctor = models.ForeignKey(Doctor, related_name='work_times', on_delete=models.CASCADE)
 
     class Suit(models.IntegerChoices):
         MON = 0
@@ -46,6 +47,12 @@ class WorkTime(models.Model):
 
 
 class Consultation(models.Model):
-    doctor = models.ForeignKey(Doctor, related_name='consultations', on_delete=models.CASCADE, null=True)
+    doctor = models.ForeignKey(Doctor, related_name='consultations', on_delete=models.CASCADE)
     datetime = models.DateTimeField(blank=True, null=True)
+    user = models.ForeignKey(User, related_name='consultations', on_delete=models.CASCADE)
 
+
+class SpecialWorkTime(models.Model):
+    date = models.DateField()
+    start_time = models.TimeField(auto_now=False, auto_now_add=False)
+    end_time = models.TimeField(auto_now=False, auto_now_add=False)

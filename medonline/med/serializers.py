@@ -8,19 +8,19 @@ from .models import Doctor, Specialization, Publication, WorkTime, Consultation
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['__all__']
+        fields = '__all__'
 
 
 class SpecializationSerializer(serializers.ModelSerializer):
-    # class DoctorSerializer(serializers.ModelSerializer):
-    #     class Meta:
-    #         model = Doctor
-    #         fields = ['name']
-    # doctors = DoctorSerializer(many=True)
+    class DoctorSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Doctor
+            fields = ['id', 'name']
+    doctors = DoctorSerializer(many=True)
 
     class Meta:
         model = Specialization
-        fields = ['id', 'name']
+        fields = '__all__'
 
 
 class PublicationSerializer(serializers.ModelSerializer):
@@ -34,7 +34,7 @@ class PublicationSerializer(serializers.ModelSerializer):
 
 class WorkTimeSerializer(serializers.ModelSerializer):
     doctor_id = serializers.ReadOnlyField()
-    doctor_name = serializers.ReadOnlyField(source='author.name')
+    doctor_name = serializers.ReadOnlyField(source='doctor.name')
 
     class Meta:
         model = WorkTime
@@ -42,18 +42,18 @@ class WorkTimeSerializer(serializers.ModelSerializer):
 
 
 class ConsultationSerializer(serializers.ModelSerializer):
-    # doctor_id = serializers.ReadOnlyField()
-    # doctor_name = serializers.ReadOnlyField(source='author.name')
+    doctor_id = serializers.ReadOnlyField()
+    doctor_name = serializers.ReadOnlyField(source='doctor.name')
 
     class Meta:
         model = Consultation
-        fields = ['datetime']
+        fields = ['datetime', 'doctor_id', 'doctor_name']
 
 
 class DoctorSerializer(serializers.ModelSerializer):
-    # publications = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     specialization = SpecializationSerializer(many=True)
     publications = PublicationSerializer(many=True)
+    # publications = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     work_times = WorkTimeSerializer(many=True)
     consultations = ConsultationSerializer(many=True)
 

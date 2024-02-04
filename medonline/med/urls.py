@@ -5,17 +5,20 @@ from rest_framework_swagger.views import get_swagger_view
 from rest_framework.routers import DefaultRouter
 
 from . import views
-from .views import UserViewSet, DoctorViewSet, SpecializationViewSet, PublicationViewSet
+from .views import UserViewSet, DoctorViewSet, SpecializationViewSet, PublicationViewSet, WorkTimeViewSet, \
+    ConsultationViewSet
 
 schema_view = get_swagger_view(title='API')
 
 router = DefaultRouter()
 
-#TODO исправить basename
+#TODO исправить basename - ok
 router.register(r'users', UserViewSet, basename='user')
-router.register(r'doctors', DoctorViewSet, basename='user')
-router.register(r'specializations', SpecializationViewSet, basename='user')
-router.register(r'publications', PublicationViewSet, basename='user')
+router.register(r'doctors', DoctorViewSet, basename='doctors')
+router.register(r'specializations', SpecializationViewSet, basename='specializations')
+router.register(r'publications', PublicationViewSet, basename='publications')
+router.register(r'work_times', WorkTimeViewSet, basename='work_times')
+router.register(r'consultations', ConsultationViewSet, basename='consultations')
 
 
 urlpatterns = router.urls
