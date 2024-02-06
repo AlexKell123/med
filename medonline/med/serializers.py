@@ -42,12 +42,20 @@ class WorkTimeSerializer(serializers.ModelSerializer):
 
 
 class ConsultationSerializer(serializers.ModelSerializer):
-    doctor_id = serializers.ReadOnlyField()
     doctor_name = serializers.ReadOnlyField(source='doctor.name')
+
+    def create(self, validated_data):
+        return Consultation.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.doctor = validated_data.get("doctor", instance.doctor)
+        instance.datetime = validated_data.get("datetime", instance.datetime)
+        instance.save()
+        return instance
 
     class Meta:
         model = Consultation
-        fields = ['datetime', 'doctor_id', 'doctor_name']
+        fields = ['datetime', 'doctor', 'doctor_name', 'user']
 
 
 class DoctorSerializer(serializers.ModelSerializer):

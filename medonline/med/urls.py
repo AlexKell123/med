@@ -12,7 +12,6 @@ schema_view = get_swagger_view(title='API')
 
 router = DefaultRouter()
 
-#TODO исправить basename - ok
 router.register(r'users', UserViewSet, basename='user')
 router.register(r'doctors', DoctorViewSet, basename='doctors')
 router.register(r'specializations', SpecializationViewSet, basename='specializations')

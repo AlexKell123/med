@@ -95,6 +95,39 @@ class ConsultationViewSet(viewsets.ViewSet):
         serializer = ConsultationSerializer(consultation)
         return Response(serializer.data)
 
+    def create(self, request):
+        serializer = ConsultationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'consultation': serializer.data})
+
+    def update(self, request, *args, **kwargs):
+        pk = kwargs.get("pk", None)
+        if not pk:
+            return Response({"error": "Method PUT not allowed"})
+
+        try:
+            instance = Consultation.objects.get(pk=pk)
+        except:
+            return Response({"error": "Object does not exists"})
+
+        serializer = ConsultationSerializer(data=request.data, instance=instance)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response({"post": serializer.data})
+
+    def destroy(self, request, *args, **kwargs):
+        pk = kwargs.get("pk", None)
+        if not pk:
+            return Response({"error": "Method DELETE not allowed"})
+
+        try:
+            Consultation.objects.filter(pk=pk).delete()
+        except:
+            return Response({"error": "Object does not exists"})
+
+        return Response({"post": "deleted consultation " + str(pk)})
 
 
 # user_list = UserViewSet.as_view({'get': 'list'})
