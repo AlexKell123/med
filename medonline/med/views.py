@@ -1,3 +1,5 @@
+import datetime
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
@@ -5,11 +7,16 @@ from django.contrib.auth.models import User
 from django.urls import re_path
 
 from rest_framework import generics, viewsets
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
+from .permissions import IsOwnerOrReadOnly
 from .serializers import UserSerializer, DoctorSerializer, SpecializationSerializer, PublicationSerializer, \
     WorkTimeSerializer, ConsultationSerializer
 from .models import Doctor, Specialization, Publication, WorkTime, Consultation
+
+# from rest_framework.decorators import api_view, renderer_classes
+# from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 
 
 class UserViewSet(viewsets.ViewSet):
@@ -84,7 +91,17 @@ class WorkTimeViewSet(viewsets.ViewSet):
 
 class ConsultationViewSet(viewsets.ViewSet):
 
+    def get_permissions(self):
+        if self.action == 'list' or self.action == 'retrieve':
+            permission_classes = [AllowAny]
+        elif self.action == 'create':
+            permission_classes = [IsAuthenticatedOrReadOnly]
+        else:
+            permission_classes = [IsOwnerOrReadOnly]
+        return [permission() for permission in permission_classes]
+
     def list(self, request):
+        print(request.data)
         queryset = Consultation.objects.all()
         serializer = ConsultationSerializer(queryset, many=True)
         return Response(serializer.data)
@@ -96,7 +113,7 @@ class ConsultationViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
     def create(self, request):
-        serializer = ConsultationSerializer(data=request.data)
+        serializer = ConsultationSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({'consultation': serializer.data})
@@ -111,7 +128,7 @@ class ConsultationViewSet(viewsets.ViewSet):
         except:
             return Response({"error": "Object does not exists"})
 
-        serializer = ConsultationSerializer(data=request.data, instance=instance)
+        serializer = ConsultationSerializer(data=request.data, instance=instance, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -130,13 +147,32 @@ class ConsultationViewSet(viewsets.ViewSet):
         return Response({"post": "deleted consultation " + str(pk)})
 
 
+class ConsultationList(generics.ListAPIView):
+    # queryset = Consultation.objects.all()
+    serializer_class = ConsultationSerializer
+
+    def get_queryset(self):
+        return Consultation.objects.filter(doctor=self.kwargs['doctor_id'],
+                                           datetime__gte=datetime.date(self.kwargs['start_year'],
+                                                                       self.kwargs['start_month'],
+                                                                       self.kwargs['start_day']),
+                                           datetime__lte=datetime.date(self.kwargs['end_year'],
+                                                                       self.kwargs['end_month'],
+                                                                       self.kwargs['end_day']))
+
+# @api_view(('GET',))
+# @renderer_classes((TemplateHTMLRenderer, JSONRenderer))
+# def test(request, start_date, end_date, doctor_id):
+#     print(start_date + end_date + str(doctor_id))
+#     return Response(start_date + end_date + str(doctor_id))
+
 # user_list = UserViewSet.as_view({'get': 'list'})
 # user_detail = UserViewSet.as_view({'get': 'retrieve'})
 
 
 # class UserList(generics.ListAPIView):
 #     queryset = User.objects.all()
-#     serializer_class = serializers.UserSerializer
+#     serializer_class = UserSerializer
 
 
 # class UserDetail(generics.RetrieveAPIView):
@@ -144,30 +180,6 @@ class ConsultationViewSet(viewsets.ViewSet):
 #     serializer_class = UserSerializer
 
 
-# class AllDoctorsList(generics.ListAPIView):
-#     queryset = Doctor.objects.all()
-#     serializer_class = DoctorSerializer
-#
-#
-# class DoctorDetail(generics.RetrieveAPIView):
-#     queryset = Doctor.objects.all()
-#     serializer_class = DoctorSerializer
 
 
-# class AllSpecializationsList(generics.ListAPIView):
-#     queryset = Specialization.objects.all()
-#     serializer_class = SpecializationSerializer
-#
-#
-# class SpecializationDetail(generics.RetrieveAPIView):
-#     queryset = Specialization.objects.all()
-#     serializer_class = SpecializationSerializer
 
-# class AllPublicationsList(generics.ListAPIView):
-#     queryset = Publication.objects.all()
-#     serializer_class = PublicationSerializer
-#
-#
-# class PublicationDetail(generics.RetrieveAPIView):
-#     queryset = Publication.objects.all()
-#     serializer_class = PublicationSerializer
