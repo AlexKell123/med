@@ -43,6 +43,7 @@ class WorkTimeSerializer(serializers.ModelSerializer):
 
 class ConsultationSerializer(serializers.ModelSerializer):
     doctor_name = serializers.ReadOnlyField(source='doctor.name')
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     def create(self, validated_data):
         return Consultation.objects.create(**validated_data)
@@ -55,7 +56,7 @@ class ConsultationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Consultation
-        fields = ['datetime', 'doctor', 'doctor_name', 'user']
+        fields = ['id', 'datetime', 'doctor', 'doctor_name', 'user']
 
 
 class DoctorSerializer(serializers.ModelSerializer):

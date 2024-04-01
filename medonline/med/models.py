@@ -5,14 +5,14 @@ from django.contrib.auth.models import User
 
 
 class Specialization(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.TextField()
 
     def __str__(self):
         return self.name
 
 
 class Doctor(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.TextField()
     specialization = models.ManyToManyField(Specialization, related_name='doctors')
 
     def __str__(self):
@@ -21,7 +21,7 @@ class Doctor(models.Model):
 
 class Publication(models.Model):
     author = models.ForeignKey(Doctor, related_name='publications', on_delete=models.CASCADE, null=True)
-    title = models.CharField(max_length=100)
+    title = models.TextField()
     text = models.TextField()
     date = models.DateTimeField(blank=True, null=True)
 
@@ -47,7 +47,7 @@ class WorkTime(models.Model):
 
 class Consultation(models.Model):
     doctor = models.ForeignKey(Doctor, related_name='consultations', on_delete=models.CASCADE)
-    datetime = models.DateTimeField(blank=True, null=True)
+    datetime = models.DateTimeField()
     user = models.ForeignKey(User, related_name='consultations', on_delete=models.CASCADE)
 
 

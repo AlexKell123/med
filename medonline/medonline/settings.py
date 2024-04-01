@@ -86,12 +86,18 @@ DATABASES = {
         # TODO исправить драйвер
         # TODO добавить env фаил с экспортом
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('DB_NAME'),
-        'USER': env('DB_USER'),
-        'PASSWORD': env('DB_PASSWORD'),
-        'HOST': env('DB_HOST'),
-        'PORT': env('DB_PORT'),
-        # 'PORT': os.environ.get('DB_PORT'),
+        'NAME': 'meddb',
+        'USER': 'alex',
+        'PASSWORD': 'qweasd',
+        'HOST': 'localhost',
+        'PORT': '',
+
+        # 'NAME': env('DB_NAME'),
+        # 'USER': env('DB_USER'),
+        # 'PASSWORD': env('DB_PASSWORD'),
+        # 'HOST': env('DB_HOST'),
+        # 'PORT': env('DB_PORT'),
+
     }
 }
 

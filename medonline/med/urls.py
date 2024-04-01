@@ -20,7 +20,12 @@ router.register(r'work_times', WorkTimeViewSet, basename='work_times')
 router.register(r'consultations', ConsultationViewSet, basename='consultations')
 
 
-urlpatterns = router.urls
+urlpatterns = [
+    path('consultations/<int:start_year>-<int:start_month>-<int:start_day>/<int:end_year>-<int:end_month>-<int:end_day>'
+         '/<int:doctor_id>', views.ConsultationList.as_view()),
+]
+
+urlpatterns += router.urls
 
 
 #TODO не оставлять мусор
