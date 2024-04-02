@@ -45,13 +45,16 @@ class WorkTime(models.Model):
     end_time = models.TimeField(auto_now=False, auto_now_add=False)
 
 
+class SpecialWorkTime(models.Model):
+    doctor = models.ForeignKey(Doctor, related_name='special_work_times', on_delete=models.CASCADE)
+    date = models.DateField()
+    start_time = models.TimeField(auto_now=False, auto_now_add=False)
+    end_time = models.TimeField(auto_now=False, auto_now_add=False)
+
+
 class Consultation(models.Model):
     doctor = models.ForeignKey(Doctor, related_name='consultations', on_delete=models.CASCADE)
     datetime = models.DateTimeField()
     user = models.ForeignKey(User, related_name='consultations', on_delete=models.CASCADE)
 
 
-class SpecialWorkTime(models.Model):
-    date = models.DateField()
-    start_time = models.TimeField(auto_now=False, auto_now_add=False)
-    end_time = models.TimeField(auto_now=False, auto_now_add=False)

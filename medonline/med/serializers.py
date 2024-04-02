@@ -2,47 +2,64 @@ from django.contrib.auth.models import User
 
 from rest_framework import serializers
 
-from .models import Doctor, Specialization, Publication, WorkTime, Consultation
+from .models import Doctor, Specialization, Publication, Consultation, WorkTime, SpecialWorkTime
 
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = '__all__'
-
-
-class SpecializationSerializer(serializers.ModelSerializer):
-    class DoctorSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = Doctor
-            fields = ['id', 'name']
-    doctors = DoctorSerializer(many=True)
+class AllSpecializationsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Specialization
         fields = '__all__'
 
 
+class OneSpecializationSerializer(AllSpecializationsSerializer):
+    class DoctorSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Doctor
+            fields = ['id', 'name']
+    doctors = DoctorSerializer(many=True)
+
+
+class AllDoctorsSerializer(serializers.ModelSerializer):
+    specialization = AllSpecializationsSerializer(many=True)
+
+    class Meta:
+        model = Doctor
+        # depth = 1
+        fields = '__all__'
+
+
+class OneDoctorSerializer(AllDoctorsSerializer):
+    class PublicationSerializer(serializers.ModelSerializer):
+
+        class Meta:
+            model = Publication
+            fields = ['id', 'title', 'date']
+
+    class WorkTimeSerializer(serializers.ModelSerializer):
+
+        class Meta:
+            model = WorkTime
+            fields = ['day', 'start_time', 'end_time']
+
+    publications = PublicationSerializer(many=True)
+    # publications = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    work_times = WorkTimeSerializer(many=True)
+
+
 class PublicationSerializer(serializers.ModelSerializer):
-    author_id = serializers.ReadOnlyField()
     author_name = serializers.ReadOnlyField(source='author.name')
 
     class Meta:
         model = Publication
-        fields = ['id', 'title', 'text', 'date', 'author_id', 'author_name']
+        fields = '__all__'
 
 
-class WorkTimeSerializer(serializers.ModelSerializer):
-    doctor_id = serializers.ReadOnlyField()
-    doctor_name = serializers.ReadOnlyField(source='doctor.name')
 
-    class Meta:
-        model = WorkTime
-        fields = ['day', 'start_time', 'end_time', 'doctor_id', 'doctor_name']
 
 
 class ConsultationSerializer(serializers.ModelSerializer):
-    doctor_name = serializers.ReadOnlyField(source='doctor.name')
+    # doctor_name = serializers.ReadOnlyField(source='doctor.name')
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     def create(self, validated_data):
@@ -56,22 +73,18 @@ class ConsultationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Consultation
-        fields = ['id', 'datetime', 'doctor', 'doctor_name', 'user']
+        fields = ['id', 'datetime', 'doctor', 'user']
 
 
-class DoctorSerializer(serializers.ModelSerializer):
-    specialization = SpecializationSerializer(many=True)
-    publications = PublicationSerializer(many=True)
-    # publications = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    work_times = WorkTimeSerializer(many=True)
-    consultations = ConsultationSerializer(many=True)
+class WorkTimeSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Doctor
-        # depth = 1
-        fields = ['id', 'name', 'specialization', 'publications', 'work_times', 'consultations']
+        model = WorkTime
+        fields = ['day', 'start_time', 'end_time', 'doctor']
 
 
+class SpecialWorkTimeSerializer(serializers.ModelSerializer):
 
-
-
+    class Meta:
+        model = SpecialWorkTime
+        fields = ['day', 'start_time', 'end_time', 'doctor']

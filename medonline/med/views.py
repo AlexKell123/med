@@ -1,35 +1,30 @@
 import datetime
-
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.urls import re_path
-
-from rest_framework import generics, viewsets
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework import viewsets
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .permissions import IsOwnerOrReadOnly
-from .serializers import UserSerializer, DoctorSerializer, SpecializationSerializer, PublicationSerializer, \
-    WorkTimeSerializer, ConsultationSerializer
-from .models import Doctor, Specialization, Publication, WorkTime, Consultation
-
-# from rest_framework.decorators import api_view, renderer_classes
-# from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
+from .serializers import AllDoctorsSerializer, OneDoctorSerializer, AllSpecializationsSerializer, \
+    OneSpecializationSerializer, PublicationSerializer, ConsultationSerializer, SpecialWorkTimeSerializer, \
+    WorkTimeSerializer
+from .models import Doctor, Specialization, Publication, WorkTime, Consultation, SpecialWorkTime
 
 
-class UserViewSet(viewsets.ViewSet):
+class SpecializationViewSet(viewsets.ViewSet):
 
     def list(self, request):
-        queryset = User.objects.all()
-        serializer = UserSerializer(queryset, many=True)
+        queryset = Specialization.objects.all()
+        serializer = AllSpecializationsSerializer(queryset, many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, pk=pk)
-        serializer = UserSerializer(user)
+        queryset = Specialization.objects.all()
+        specialization = get_object_or_404(queryset, pk=pk)
+        serializer = OneSpecializationSerializer(specialization)
         return Response(serializer.data)
 
 
@@ -37,27 +32,13 @@ class DoctorViewSet(viewsets.ViewSet):
 
     def list(self, request):
         queryset = Doctor.objects.all()
-        serializer = DoctorSerializer(queryset, many=True)
+        serializer = AllDoctorsSerializer(queryset, many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
         queryset = Doctor.objects.all()
         doctor = get_object_or_404(queryset, pk=pk)
-        serializer = DoctorSerializer(doctor)
-        return Response(serializer.data)
-
-
-class SpecializationViewSet(viewsets.ViewSet):
-
-    def list(self, request):
-        queryset = Specialization.objects.all()
-        serializer = SpecializationSerializer(queryset, many=True)
-        return Response(serializer.data)
-
-    def retrieve(self, request, pk=None):
-        queryset = Specialization.objects.all()
-        specialization = get_object_or_404(queryset, pk=pk)
-        serializer = SpecializationSerializer(specialization)
+        serializer = OneDoctorSerializer(doctor)
         return Response(serializer.data)
 
 
@@ -75,18 +56,40 @@ class PublicationViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 
-class WorkTimeViewSet(viewsets.ViewSet):
 
-    def list(self, request):
-        queryset = WorkTime.objects.all()
+
+
+class ConsultationsView(APIView):
+    def get(self, request, *args, **kwargs):
+        queryset = Consultation.objects.filter(doctor=self.kwargs['doctor'],
+                                                    datetime__gte=datetime.date(self.kwargs['start_year'],
+                                                                                self.kwargs['start_month'],
+                                                                                self.kwargs['start_day']),
+                                                    datetime__lte=datetime.date(self.kwargs['end_year'],
+                                                                                self.kwargs['end_month'],
+                                                                                self.kwargs['end_day']))
+
+        serializer = ConsultationSerializer(queryset, many=True)
+        cons = serializer.data
+        queryset = SpecialWorkTime.objects.filter(doctor=self.kwargs['doctor'],
+                                                    date__gte=datetime.date(self.kwargs['start_year'],
+                                                                                self.kwargs['start_month'],
+                                                                                self.kwargs['start_day']),
+                                                    date__lte=datetime.date(self.kwargs['end_year'],
+                                                                                self.kwargs['end_month'],
+                                                                                self.kwargs['end_day']))
+
+        serializer = SpecialWorkTimeSerializer(queryset, many=True)
+        spwt = serializer.data
+        queryset = WorkTime.objects.filter(doctor=self.kwargs['doctor'])
         serializer = WorkTimeSerializer(queryset, many=True)
-        return Response(serializer.data)
+        wt = serializer.data
 
-    def retrieve(self, request, pk=None):
-        queryset = WorkTime.objects.all()
-        work_time = get_object_or_404(queryset, pk=pk)
-        serializer = WorkTimeSerializer(work_time)
-        return Response(serializer.data)
+        result = {'cons': cons, 'spwt': spwt, 'wt': wt}
+
+        return Response(result)
+
+
 
 
 class ConsultationViewSet(viewsets.ViewSet):
@@ -101,7 +104,6 @@ class ConsultationViewSet(viewsets.ViewSet):
         return [permission() for permission in permission_classes]
 
     def list(self, request):
-        print(request.data)
         queryset = Consultation.objects.all()
         serializer = ConsultationSerializer(queryset, many=True)
         return Response(serializer.data)
@@ -147,28 +149,23 @@ class ConsultationViewSet(viewsets.ViewSet):
         return Response({"post": "deleted consultation " + str(pk)})
 
 
-class ConsultationList(generics.ListAPIView):
-    # queryset = Consultation.objects.all()
-    serializer_class = ConsultationSerializer
 
-    def get_queryset(self):
-        return Consultation.objects.filter(doctor=self.kwargs['doctor_id'],
-                                           datetime__gte=datetime.date(self.kwargs['start_year'],
-                                                                       self.kwargs['start_month'],
-                                                                       self.kwargs['start_day']),
-                                           datetime__lte=datetime.date(self.kwargs['end_year'],
-                                                                       self.kwargs['end_month'],
-                                                                       self.kwargs['end_day']))
 
-# @api_view(('GET',))
-# @renderer_classes((TemplateHTMLRenderer, JSONRenderer))
-# def test(request, start_date, end_date, doctor_id):
-#     print(start_date + end_date + str(doctor_id))
-#     return Response(start_date + end_date + str(doctor_id))
+# class UserViewSet(viewsets.ViewSet):
+#
+#     def list(self, request):
+#         queryset = User.objects.all()
+#         serializer = UserSerializer(queryset, many=True)
+#         return Response(serializer.data)
+#
+#     def retrieve(self, request, pk=None):
+#         queryset = User.objects.all()
+#         user = get_object_or_404(queryset, pk=pk)
+#         serializer = UserSerializer(user)
+#         return Response(serializer.data)
 
 # user_list = UserViewSet.as_view({'get': 'list'})
 # user_detail = UserViewSet.as_view({'get': 'retrieve'})
-
 
 # class UserList(generics.ListAPIView):
 #     queryset = User.objects.all()
@@ -178,8 +175,5 @@ class ConsultationList(generics.ListAPIView):
 # class UserDetail(generics.RetrieveAPIView):
 #     queryset = User.objects.all()
 #     serializer_class = UserSerializer
-
-
-
 
 
