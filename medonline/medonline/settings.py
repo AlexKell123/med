@@ -85,7 +85,7 @@ DATABASES = {
     'default': {
         # TODO исправить драйвер
         # TODO добавить env фаил с экспортом
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'meddb',
         'USER': 'alex',
         'PASSWORD': 'qweasd',

@@ -59,22 +59,23 @@ class PublicationViewSet(viewsets.ViewSet):
 class ConsultationView(APIView):
     def get(self, request, *args, **kwargs):
         queryset = Consultation.objects.filter(doctor=self.kwargs['doctor'],
-                                               datetime__gte=datetime.date(self.kwargs['start_year'],
-                                                                           self.kwargs['start_month'],
-                                                                           self.kwargs['start_day']),
-                                               datetime__lte=datetime.date(self.kwargs['end_year'],
-                                                                           self.kwargs['end_month'],
-                                                                           self.kwargs['end_day']))
+                                               datetime__range=[datetime.date(self.kwargs['start_year'],
+                                                                              self.kwargs['start_month'],
+                                                                              self.kwargs['start_day']),
+                                                                datetime.date(self.kwargs['end_year'],
+                                                                              self.kwargs['end_month'],
+                                                                              self.kwargs['end_day'])])
+
         serializer = ConsultationSerializer(queryset, many=True)
         consultations = serializer.data
 
         queryset = SpecialWorkTime.objects.filter(doctor=self.kwargs['doctor'],
-                                                  date__gte=datetime.date(self.kwargs['start_year'],
-                                                                          self.kwargs['start_month'],
-                                                                          self.kwargs['start_day']),
-                                                  date__lte=datetime.date(self.kwargs['end_year'],
-                                                                          self.kwargs['end_month'],
-                                                                          self.kwargs['end_day']))
+                                                  date__range=[datetime.date(self.kwargs['start_year'],
+                                                                             self.kwargs['start_month'],
+                                                                             self.kwargs['start_day']),
+                                                               datetime.date(self.kwargs['end_year'],
+                                                                             self.kwargs['end_month'],
+                                                                             self.kwargs['end_day'])])
         serializer = SpecialWorkTimeSerializer(queryset, many=True)
         special_work_time = serializer.data
 
@@ -109,8 +110,35 @@ class ConsultationViewSet(viewsets.ViewSet):
     def create(self, request):
         serializer = OneConsultationSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({'Consultation created': serializer.data})
+        if serializer.validated_data['datetime'].minute != 0 or serializer.validated_data['datetime'].second != 0:
+            return Response({'Incorrect time': serializer.validated_data['datetime'].time()})
+
+        queryset = Consultation.objects.filter(doctor=serializer.validated_data['doctor'],
+                                               datetime=serializer.validated_data['datetime'])
+        if queryset:
+            serializer = ConsultationSerializer(queryset, many=True)
+            return Response({'Consultation exist': serializer.data})
+
+        queryset = SpecialWorkTime.objects.filter(doctor=serializer.validated_data['doctor'],
+                                                  date=serializer.validated_data['datetime'].date())
+        if queryset:
+            for i in queryset:
+                if i.start_time <= serializer.validated_data['datetime'].time() < i.end_time:
+                    serializer.save()
+                    return Response({'Consultation created': serializer.data})
+            return Response({'No special worktime': serializer.validated_data['datetime'].time() })
+        else:
+            queryset = WorkTime.objects.filter(doctor=serializer.validated_data['doctor'],
+                                               day=serializer.validated_data['datetime'].date().weekday())
+            if queryset:
+                for i in queryset:
+                    if i.start_time <= serializer.validated_data['datetime'].time() < i.end_time:
+                        serializer.save()
+                        return Response({'Consultation created': serializer.data})
+                return Response({'No worktime': serializer.validated_data['datetime'].time()})
+
+            else:
+                return Response({'No work today': serializer.validated_data['datetime'].date().weekday()})
 
     def update(self, request, *args, **kwargs):
         pk = kwargs.get("pk", None)
