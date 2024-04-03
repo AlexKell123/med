@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from .permissions import IsOwnerOrReadOnly
 from .serializers import AllDoctorsSerializer, OneDoctorSerializer, AllSpecializationsSerializer, \
     OneSpecializationSerializer, PublicationSerializer, ConsultationSerializer, SpecialWorkTimeSerializer, \
-    WorkTimeSerializer
+    WorkTimeSerializer, OneConsultationSerializer
 from .models import Doctor, Specialization, Publication, WorkTime, Consultation, SpecialWorkTime
 
 
@@ -56,97 +56,86 @@ class PublicationViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 
-
-
-
-class ConsultationsView(APIView):
+class ConsultationView(APIView):
     def get(self, request, *args, **kwargs):
         queryset = Consultation.objects.filter(doctor=self.kwargs['doctor'],
-                                                    datetime__gte=datetime.date(self.kwargs['start_year'],
-                                                                                self.kwargs['start_month'],
-                                                                                self.kwargs['start_day']),
-                                                    datetime__lte=datetime.date(self.kwargs['end_year'],
-                                                                                self.kwargs['end_month'],
-                                                                                self.kwargs['end_day']))
-
+                                               datetime__gte=datetime.date(self.kwargs['start_year'],
+                                                                           self.kwargs['start_month'],
+                                                                           self.kwargs['start_day']),
+                                               datetime__lte=datetime.date(self.kwargs['end_year'],
+                                                                           self.kwargs['end_month'],
+                                                                           self.kwargs['end_day']))
         serializer = ConsultationSerializer(queryset, many=True)
-        cons = serializer.data
-        queryset = SpecialWorkTime.objects.filter(doctor=self.kwargs['doctor'],
-                                                    date__gte=datetime.date(self.kwargs['start_year'],
-                                                                                self.kwargs['start_month'],
-                                                                                self.kwargs['start_day']),
-                                                    date__lte=datetime.date(self.kwargs['end_year'],
-                                                                                self.kwargs['end_month'],
-                                                                                self.kwargs['end_day']))
+        consultations = serializer.data
 
+        queryset = SpecialWorkTime.objects.filter(doctor=self.kwargs['doctor'],
+                                                  date__gte=datetime.date(self.kwargs['start_year'],
+                                                                          self.kwargs['start_month'],
+                                                                          self.kwargs['start_day']),
+                                                  date__lte=datetime.date(self.kwargs['end_year'],
+                                                                          self.kwargs['end_month'],
+                                                                          self.kwargs['end_day']))
         serializer = SpecialWorkTimeSerializer(queryset, many=True)
-        spwt = serializer.data
+        special_work_time = serializer.data
+
         queryset = WorkTime.objects.filter(doctor=self.kwargs['doctor'])
         serializer = WorkTimeSerializer(queryset, many=True)
-        wt = serializer.data
+        work_time = serializer.data
 
-        result = {'cons': cons, 'spwt': spwt, 'wt': wt}
-
-        return Response(result)
-
-
+        return Response({'doctor': self.kwargs['doctor'], 'consultations': consultations,
+                         'special_work_time': special_work_time, 'work_time': work_time})
 
 
 class ConsultationViewSet(viewsets.ViewSet):
 
     def get_permissions(self):
-        if self.action == 'list' or self.action == 'retrieve':
-            permission_classes = [AllowAny]
-        elif self.action == 'create':
+        if self.action == 'create':
             permission_classes = [IsAuthenticatedOrReadOnly]
         else:
             permission_classes = [IsOwnerOrReadOnly]
         return [permission() for permission in permission_classes]
 
-    def list(self, request):
-        queryset = Consultation.objects.all()
-        serializer = ConsultationSerializer(queryset, many=True)
-        return Response(serializer.data)
+    # def list(self, request):
+    #     queryset = Consultation.objects.all()
+    #     serializer = ConsultationSerializer(queryset, many=True)
+    #     return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
         queryset = Consultation.objects.all()
         consultation = get_object_or_404(queryset, pk=pk)
-        serializer = ConsultationSerializer(consultation)
+        serializer = OneConsultationSerializer(consultation)
         return Response(serializer.data)
 
     def create(self, request):
-        serializer = ConsultationSerializer(data=request.data, context={'request': request})
+        serializer = OneConsultationSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({'consultation': serializer.data})
+        return Response({'Consultation created': serializer.data})
 
     def update(self, request, *args, **kwargs):
         pk = kwargs.get("pk", None)
         if not pk:
             return Response({"error": "Method PUT not allowed"})
-
         try:
             instance = Consultation.objects.get(pk=pk)
         except:
             return Response({"error": "Object does not exists"})
 
-        serializer = ConsultationSerializer(data=request.data, instance=instance, context={'request': request})
+        serializer = OneConsultationSerializer(data=request.data, instance=instance, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
-
-        return Response({"post": serializer.data})
+        return Response({"Consultation updated": serializer.data})
 
     def destroy(self, request, *args, **kwargs):
         pk = kwargs.get("pk", None)
         if not pk:
             return Response({"error": "Method DELETE not allowed"})
-
         try:
             Consultation.objects.filter(pk=pk).delete()
         except:
             return Response({"error": "Object does not exists"})
 
-        return Response({"post": "deleted consultation " + str(pk)})
+        return Response({"Consultation deleted": str(pk)})
 
 
 

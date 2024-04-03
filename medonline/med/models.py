@@ -30,7 +30,7 @@ class Publication(models.Model):
 
 
 class WorkTime(models.Model):
-    doctor = models.ForeignKey(Doctor, related_name='work_times', on_delete=models.CASCADE)
+    doctor = models.ForeignKey(Doctor, related_name='work_time', on_delete=models.CASCADE)
 
     class Suit(models.IntegerChoices):
         MON = 0
@@ -46,7 +46,7 @@ class WorkTime(models.Model):
 
 
 class SpecialWorkTime(models.Model):
-    doctor = models.ForeignKey(Doctor, related_name='special_work_times', on_delete=models.CASCADE)
+    doctor = models.ForeignKey(Doctor, related_name='special_work_time', on_delete=models.CASCADE)
     date = models.DateField()
     start_time = models.TimeField(auto_now=False, auto_now_add=False)
     end_time = models.TimeField(auto_now=False, auto_now_add=False)

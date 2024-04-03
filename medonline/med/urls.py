@@ -1,12 +1,10 @@
-from django.urls import path
+from django.urls import path, include
 
 from rest_framework.urlpatterns import format_suffix_patterns
 # from rest_framework_swagger.views import get_swagger_view
 from rest_framework.routers import DefaultRouter
 
-from .views import DoctorViewSet, SpecializationViewSet, PublicationViewSet, ConsultationViewSet, ConsultationsView
-
-
+from .views import DoctorViewSet, SpecializationViewSet, PublicationViewSet, ConsultationViewSet, ConsultationView
 
 router = DefaultRouter()
 
@@ -20,7 +18,8 @@ router.register(r'consultations', ConsultationViewSet, basename='consultations')
 
 urlpatterns = [
     path('consultations/<int:start_year>-<int:start_month>-<int:start_day>/<int:end_year>-<int:end_month>-<int:end_day>'
-         '/<int:doctor>', ConsultationsView.as_view()),
+         '/<int:doctor>', ConsultationView.as_view()),
+    path('auth', include('rest_framework.urls')),
 ]
 
 urlpatterns += router.urls

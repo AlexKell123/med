@@ -20,6 +20,19 @@ class OneSpecializationSerializer(AllSpecializationsSerializer):
     doctors = DoctorSerializer(many=True)
 
 
+class WorkTimeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WorkTime
+        fields = ['day', 'start_time', 'end_time']
+
+
+class SpecialWorkTimeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SpecialWorkTime
+        fields = ['date', 'start_time', 'end_time']
+
+
 class AllDoctorsSerializer(serializers.ModelSerializer):
     specialization = AllSpecializationsSerializer(many=True)
 
@@ -36,15 +49,9 @@ class OneDoctorSerializer(AllDoctorsSerializer):
             model = Publication
             fields = ['id', 'title', 'date']
 
-    class WorkTimeSerializer(serializers.ModelSerializer):
-
-        class Meta:
-            model = WorkTime
-            fields = ['day', 'start_time', 'end_time']
-
     publications = PublicationSerializer(many=True)
     # publications = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    work_times = WorkTimeSerializer(many=True)
+    work_time = WorkTimeSerializer(many=True)
 
 
 class PublicationSerializer(serializers.ModelSerializer):
@@ -55,11 +62,15 @@ class PublicationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
-
-
 class ConsultationSerializer(serializers.ModelSerializer):
-    # doctor_name = serializers.ReadOnlyField(source='doctor.name')
+
+    class Meta:
+        model = Consultation
+        fields = ['id', 'datetime']
+
+
+class OneConsultationSerializer(serializers.ModelSerializer):
+    doctor_name = serializers.ReadOnlyField(source='doctor.name')
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     def create(self, validated_data):
@@ -73,18 +84,4 @@ class ConsultationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Consultation
-        fields = ['id', 'datetime', 'doctor', 'user']
-
-
-class WorkTimeSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = WorkTime
-        fields = ['day', 'start_time', 'end_time', 'doctor']
-
-
-class SpecialWorkTimeSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = SpecialWorkTime
-        fields = ['day', 'start_time', 'end_time', 'doctor']
+        fields = '__all__'
