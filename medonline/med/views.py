@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.contrib.auth.models import User
 from rest_framework import viewsets
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -87,11 +87,35 @@ class ConsultationView(APIView):
                          'special_work_time': special_work_time, 'work_time': work_time})
 
 
+def check_datetime_input_error(date_time):
+    return True if date_time.minute != 0 or date_time.second != 0 or date_time.microsecond != 0 else False
+
+
+def check_work_time_errors(date_time, doctor):
+    day = SpecialWorkTime.objects.filter(doctor=doctor, date=date_time.date())
+    if not day:
+        day = WorkTime.objects.filter(doctor=doctor, day=date_time.date().weekday())
+        if not day:
+            return Response({'error: No work today: ': date_time.date().weekday()})
+    for i in day:
+        if i.start_time <= date_time.time() < i.end_time:
+            return False
+    return Response({'error: No worktime: ': date_time.time()})
+
+
+def check_errors(date_time, doctor):
+    if check_datetime_input_error(date_time):
+        return Response({'error: Incorrect time: ': date_time.time()})
+    if Consultation.objects.filter(doctor=doctor, datetime=date_time):
+        return Response({'error: Consultation exist: ': date_time})
+    return check_work_time_errors(date_time, doctor)
+
+
 class ConsultationViewSet(viewsets.ViewSet):
 
     def get_permissions(self):
         if self.action == 'create':
-            permission_classes = [IsAuthenticatedOrReadOnly]
+            permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsOwnerOrReadOnly]
         return [permission() for permission in permission_classes]
@@ -110,35 +134,11 @@ class ConsultationViewSet(viewsets.ViewSet):
     def create(self, request):
         serializer = OneConsultationSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        if serializer.validated_data['datetime'].minute != 0 or serializer.validated_data['datetime'].second != 0:
-            return Response({'Incorrect time': serializer.validated_data['datetime'].time()})
-
-        queryset = Consultation.objects.filter(doctor=serializer.validated_data['doctor'],
-                                               datetime=serializer.validated_data['datetime'])
-        if queryset:
-            serializer = ConsultationSerializer(queryset, many=True)
-            return Response({'Consultation exist': serializer.data})
-
-        queryset = SpecialWorkTime.objects.filter(doctor=serializer.validated_data['doctor'],
-                                                  date=serializer.validated_data['datetime'].date())
-        if queryset:
-            for i in queryset:
-                if i.start_time <= serializer.validated_data['datetime'].time() < i.end_time:
-                    serializer.save()
-                    return Response({'Consultation created': serializer.data})
-            return Response({'No special worktime': serializer.validated_data['datetime'].time() })
-        else:
-            queryset = WorkTime.objects.filter(doctor=serializer.validated_data['doctor'],
-                                               day=serializer.validated_data['datetime'].date().weekday())
-            if queryset:
-                for i in queryset:
-                    if i.start_time <= serializer.validated_data['datetime'].time() < i.end_time:
-                        serializer.save()
-                        return Response({'Consultation created': serializer.data})
-                return Response({'No worktime': serializer.validated_data['datetime'].time()})
-
-            else:
-                return Response({'No work today': serializer.validated_data['datetime'].date().weekday()})
+        error = check_errors(serializer.validated_data['datetime'], serializer.validated_data['doctor'])
+        if error:
+            return error
+        serializer.save()
+        return Response({'Consultation created': serializer.data})
 
     def update(self, request, *args, **kwargs):
         pk = kwargs.get("pk", None)
@@ -151,8 +151,12 @@ class ConsultationViewSet(viewsets.ViewSet):
 
         serializer = OneConsultationSerializer(data=request.data, instance=instance, context={'request': request})
         serializer.is_valid(raise_exception=True)
+        error = check_errors(serializer.validated_data['datetime'], serializer.validated_data['doctor'])
+        if error:
+            return error
         serializer.save()
-        return Response({"Consultation updated": serializer.data})
+        return Response({'Consultation updated': serializer.data})
+
 
     def destroy(self, request, *args, **kwargs):
         pk = kwargs.get("pk", None)
