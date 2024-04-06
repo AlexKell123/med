@@ -76,7 +76,6 @@ class OneConsultationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return Consultation.objects.create(**validated_data)
 
-
     def update(self, instance, validated_data):
         instance.doctor = validated_data.get("doctor", instance.doctor)
         instance.datetime = validated_data.get("datetime", instance.datetime)
