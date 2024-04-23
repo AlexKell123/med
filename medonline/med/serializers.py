@@ -1,5 +1,3 @@
-from django.contrib.auth.models import User
-
 from rest_framework import serializers
 
 from .models import Doctor, Specialization, Publication, Consultation, WorkTime, SpecialWorkTime
@@ -12,12 +10,24 @@ class AllSpecializationsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class AllDoctorsSerializer(serializers.ModelSerializer):
+    specialization = AllSpecializationsSerializer(many=True)
+
+    class Meta:
+        model = Doctor
+        fields = '__all__'
+
+
 class OneSpecializationSerializer(AllSpecializationsSerializer):
-    class DoctorSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = Doctor
-            fields = ['id', 'name']
-    doctors = DoctorSerializer(many=True)
+    doctors = AllDoctorsSerializer(many=True)
+
+
+class PublicationSerializer(serializers.ModelSerializer):
+    author_name = serializers.ReadOnlyField(source='author.name')
+
+    class Meta:
+        model = Publication
+        fields = '__all__'
 
 
 class WorkTimeSerializer(serializers.ModelSerializer):
@@ -33,15 +43,6 @@ class SpecialWorkTimeSerializer(serializers.ModelSerializer):
         fields = ['date', 'start_time', 'end_time']
 
 
-class AllDoctorsSerializer(serializers.ModelSerializer):
-    specialization = AllSpecializationsSerializer(many=True)
-
-    class Meta:
-        model = Doctor
-        # depth = 1
-        fields = '__all__'
-
-
 class OneDoctorSerializer(AllDoctorsSerializer):
     class PublicationSerializer(serializers.ModelSerializer):
 
@@ -54,15 +55,7 @@ class OneDoctorSerializer(AllDoctorsSerializer):
     work_time = WorkTimeSerializer(many=True)
 
 
-class PublicationSerializer(serializers.ModelSerializer):
-    author_name = serializers.ReadOnlyField(source='author.name')
-
-    class Meta:
-        model = Publication
-        fields = '__all__'
-
-
-class ConsultationSerializer(serializers.ModelSerializer):
+class AllConsultationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Consultation

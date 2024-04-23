@@ -1,6 +1,4 @@
-from django.conf import settings
 from django.db import models
-from django.utils import timezone
 from django.contrib.auth.models import User
 
 
@@ -56,5 +54,3 @@ class Consultation(models.Model):
     doctor = models.ForeignKey(Doctor, related_name='consultations', on_delete=models.CASCADE)
     datetime = models.DateTimeField()
     user = models.ForeignKey(User, related_name='consultations', on_delete=models.CASCADE)
-
-
